@@ -1,0 +1,26 @@
+:root { --hud: rgba(10, 24, 30, .55); --ink: #f6f2e4; --needle: #ff5a4a; --btn: rgba(255, 255, 255, .22); }
+html, body { margin: 0; height: 100%; background: #d9d2b8; overflow: hidden; color: var(--ink);
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
+#root { position: fixed; inset: 0; }
+canvas { image-rendering: pixelated; display: block; }
+
+.speedo { position: fixed; right: 12px; top: calc(env(safe-area-inset-top, 0px) + 12px); width: 96px; height: 96px;
+  border-radius: 50%; background: var(--hud); border: 3px solid var(--ink); }
+.speedo i { position: absolute; left: 50%; top: 50%; width: 3px; height: 40px; background: var(--needle); transform-origin: 50% 100%; }
+.speedo b { position: absolute; bottom: 12px; left: 0; right: 0; text-align: center; font-size: 17px; }
+.speedo small { position: absolute; bottom: 2px; left: 0; right: 0; text-align: center; font-size: 9px; opacity: .8; }
+
+.pad { position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); display: flex; gap: 12px; }
+.pad.left { left: 16px; } .pad.right { right: 16px; }
+.pad button { width: 68px; height: 68px; border-radius: 50%; border: 2px solid var(--ink); background: var(--btn); color: var(--ink); font-size: 26px; }
+
+.minimap { position: fixed; left: 12px; top: calc(env(safe-area-inset-top, 0px) + 12px);
+  border: 3px solid var(--ink); border-radius: 10px; background: var(--hud); }
+
+.minimap { cursor: pointer; }
+.mapfull { position: fixed; inset: 0; z-index: 10; background: rgba(10, 20, 25, .94);
+  display: flex; align-items: center; justify-content: center; }
+.mapfull canvas { border: 3px solid var(--ink); border-radius: 10px; }
+.mapback { position: absolute; left: 12px; top: calc(env(safe-area-inset-top, 0px) + 12px);
+  padding: 10px 18px; font-size: 16px; border-radius: 10px; border: 2px solid var(--ink);
+  background: var(--btn); color: var(--ink); }
