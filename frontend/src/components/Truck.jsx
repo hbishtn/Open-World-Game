@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { input, useGame, player } from '../store'
+import { input, useGame, player, walker } from '../store'
 import { roadX, heightAt, onRoad, GATE_Z, RING_IN } from '../world'
 import { loadPlayer, savePlayer } from '../api'
 
@@ -31,13 +31,15 @@ export default function Truck() {
     const dt = Math.min(delta, 0.05)
     const q = st.current
     const cam = state.camera
+    const walking = useGame.getState().mode === 'walk'
 
     // --- gaadi ki physics (arcade) ---
-    q.v += (input.w ? 14 : 0) * dt - (input.s ? 20 : 0) * dt
+    if (walking) q.v -= q.v * 4 * dt // utar gaye: gaadi ruk jati hai
+    else q.v += (input.w ? 14 : 0) * dt - (input.s ? 20 : 0) * dt
     q.v -= q.v * 0.4 * dt
     if (!onRoad(q.x, q.z)) q.v -= q.v * 1.3 * dt // road se utre to slow
     q.v = Math.max(-6, Math.min(30, q.v))
-    const steer = (input.a ? 1 : 0) - (input.d ? 1 : 0)
+    const steer = walking ? 0 : (input.a ? 1 : 0) - (input.d ? 1 : 0)
     q.ang += steer * dt * 1.7 * Math.min(1, Math.abs(q.v) / 6) * (q.v < 0 ? -1 : 1)
     const fx = Math.sin(q.ang), fz = Math.cos(q.ang)
     q.x += fx * q.v * dt
@@ -50,16 +52,18 @@ export default function Truck() {
 
     truck.current.position.set(q.x, q.y, q.z)
     truck.current.rotation.set(0, q.ang, -steer * q.v * 0.004)
-    rig.current.position.set(q.x, q.y, q.z)
-
+    const f = walking ? walker : q // sun (shadow) active character ke saath chalta hai
+    rig.current.position.set(f.x, f.y, f.z)
     player.x = q.x; player.z = q.z; player.ang = q.ang
 
-    // --- camera: gaadi ke peeche-upar se follow ---
-    cam.position.x += (q.x - fx * 9 - cam.position.x) * 0.08
-    cam.position.z += (q.z - fz * 9 - cam.position.z) * 0.08
-    cam.position.y += (q.y + 4.6 - cam.position.y) * 0.08
-    cam.position.y = Math.max(cam.position.y, heightAt(cam.position.x, cam.position.z) + 2)
-    cam.lookAt(q.x + fx * 6, q.y + 1.2, q.z + fz * 6)
+    if (!walking) {
+      // --- camera: gaadi ke peeche-upar se follow ---
+      cam.position.x += (q.x - fx * 9 - cam.position.x) * 0.08
+      cam.position.z += (q.z - fz * 9 - cam.position.z) * 0.08
+      cam.position.y += (q.y + 4.6 - cam.position.y) * 0.08
+      cam.position.y = Math.max(cam.position.y, heightAt(cam.position.x, cam.position.z) + 2)
+      cam.lookAt(q.x + fx * 6, q.y + 1.2, q.z + fz * 6)
+    }
 
     // --- HUD speed (sirf tab update jab number badle) ---
     const kmh = Math.round(Math.abs(q.v) * 3.6)

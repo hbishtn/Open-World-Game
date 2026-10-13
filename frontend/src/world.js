@@ -63,3 +63,51 @@ export const BUILDINGS = (() => {
     }
   return out
 })()
+
+// Metro: Kartavya Path ke paschim (left) lawn ke upar elevated line
+export const METRO_X = -28
+export const STATION_HALF = 40      // station ki aadhi lambai
+export const STATIONS = [{ z: 450, name: 'Central Secretariat' }, { z: -245, name: 'India Gate' }]
+// Metro ke neeche/seedhiyon ke paas ped nahi lagte
+export const nearMetro = (x, z) =>
+  (x > -37 && x < -19) || (x > -21 && x < -12 && STATIONS.some((s) => Math.abs(z - s.z) < 62))
+
+// ---------- Paidal chalne ke liye: unchai (seedhiyan/platform) aur takkar ----------
+export const PLATFORM_Y = 10.03
+// Metro khambhe (z positions) -- Metro.jsx bhi inhi se khambhe banata hai
+export const PIER_Z = (() => {
+  const out = []
+  for (let z = 790; z > -790; z -= 28) {
+    if (STATIONS.some((s) => Math.abs(z - s.z) < STATION_HALF + 6)) continue
+    if (EW.some((e) => Math.abs(z - e.z) < e.half + 5)) continue
+    if (Math.hypot(METRO_X, z - GATE_Z) < RING_OUT + 4) continue
+    out.push(z)
+  }
+  return out
+})()
+export const STATION_COLS = STATIONS.flatMap((s) =>
+  [-36, -18, 0, 18, 36].flatMap((dz) => [-1, 1].map((sx) => [METRO_X + sx * 6.3, s.z + dz]))
+)
+
+// (x,z) pe paidal chalne wali zameen ki unchai: 0 = sadak/lawn, seedhi pe 0.4 har step, platform pe 10
+export const groundH = (x, z) => {
+  for (const st of STATIONS) {
+    if (Math.abs(z - st.z) <= STATION_HALF && x >= METRO_X + 4.9 && x <= METRO_X + 7) return PLATFORM_Y  // purab ka platform
+    for (const s of [1, -1]) {
+      const t = (z - (st.z + s * 52)) * -s            // seedhi ke shuru se doori
+      if (x >= -19.5 && x <= -15.5 && t >= 0 && t < 22) return Math.min(10, (Math.floor(t / 0.88) + 1) * 0.4)
+      if (x >= -21.7 && x <= -15 && t >= 22 && t <= 26) return 10                                      // upar ka landing
+    }
+  }
+  return 0
+}
+
+// Zameen pe koi thos cheez (khambha, imaarat, India Gate)? h = abhi ki unchai (upar platform pe ho to false)
+export const solidAt = (x, z, r, h = 0) => {
+  if (h > 5) return false
+  if (Math.hypot(x, z - GATE_Z) < RING_IN - 0.5 + r) return true
+  if (Math.abs(x - METRO_X) < 3 + r) for (const pz of PIER_Z) if (Math.hypot(x - METRO_X, z - pz) < 1.5 + r) return true
+  for (const [cx, cz] of STATION_COLS) if (Math.abs(x - cx) < 1 + r && Math.abs(z - cz) < 1 + r) return true
+  for (const b of BUILDINGS) if (Math.abs(x - b.x) < b.w / 2 + r && Math.abs(z - b.z) < b.d / 2 + r) return true
+  return false
+}

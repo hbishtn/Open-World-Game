@@ -1,11 +1,11 @@
 import { useEffect } from 'react'
-import { input } from '../store'
+import { input, toggleCar } from '../store'
 
 const map = { w: 'w', arrowup: 'w', s: 's', arrowdown: 's', a: 'a', arrowleft: 'a', d: 'd', arrowright: 'd' }
 
 export default function Controls() {
   useEffect(() => {
-    const down = (e) => { const k = map[e.key.toLowerCase()]; if (k) input[k] = 1 }
+    const down = (e) => { const k = map[e.key.toLowerCase()]; if (k) input[k] = 1; if (e.key.toLowerCase() === 'e' && !e.repeat) toggleCar() }
     const up = (e) => { const k = map[e.key.toLowerCase()]; if (k) input[k] = 0 }
     addEventListener('keydown', down)
     addEventListener('keyup', up)
